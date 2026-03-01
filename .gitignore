@@ -104,3 +104,11 @@ Thumbs.db
 coverage.xml
 htmlcov/
 .pytest_cache/
+
+# -----------------------------------------------------------------------------
+# Terraform
+# -----------------------------------------------------------------------------
+.terraform/
+terraform.tfstate
+terraform.tfstate.backup
+*.tfvars
