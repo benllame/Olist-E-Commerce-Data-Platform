@@ -485,7 +485,7 @@ Este proyecto utiliza **2 ambientes conda** separados:
 | Ambiente | Python | Paquetes | Propósito |
 |----------|--------|----------|-----------|
 | `airflow` | 3.10 | 324 | Apache Airflow 2.8.1, DAGs, operaciones BigQuery, GCS providers |
-| `dev` | 3.10 | 509 | Apache Beam, streaming, PyTorch 2.7.1, scikit-learn |
+| `dev` | 3.10 | ~20 | Apache Beam, streaming, Google Cloud SDKs, pandas, numpy |
 
 ### 2. Setup GCP & Deploy Infrastructure
 
