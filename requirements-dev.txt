@@ -4,20 +4,12 @@
 # ============================================
 
 # --- Core Data Processing ---
+# apache-beam[gcp] pulls in google-cloud-bigquery, storage, pubsub, dataflow, etc.
 apache-beam[gcp]==2.71.0
 numpy==1.24.4
 pandas==2.3.2
 pyarrow==18.1.0
 db-dtypes==1.5.0
-
-# --- Google Cloud SDK ---
-google-cloud-bigquery==3.40.1
-google-cloud-bigquery-storage==2.36.1
-google-cloud-storage==3.9.0
-google-cloud-pubsub==2.35.0
-google-cloud-dataflow-client==0.11.0
-google-api-core==2.29.0
-google-auth==2.48.0
 
 # --- Testing ---
 pytest==9.0.2
