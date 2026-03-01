@@ -17,12 +17,13 @@ from airflow.providers.google.cloud.transfers.gcs_to_bigquery import GCSToBigQue
 from airflow.utils.trigger_rule import TriggerRule
 from datetime import datetime, timedelta
 import logging
+import os
 
 # ==========================================
 # CONFIGURACIÓN
 # ==========================================
 
-PROJECT_ID = 'ecommerce-olist-150226'  # ⚠️ Cambiar por tu project
+PROJECT_ID = os.environ.get('GCP_PROJECT_ID', 'ecommerce-olist-ben-260301')
 GCS_BUCKET = f'{PROJECT_ID}-raw-data'
 BQ_DATASET = 'olist_raw'
 

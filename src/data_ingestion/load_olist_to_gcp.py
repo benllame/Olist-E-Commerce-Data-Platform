@@ -28,10 +28,15 @@ class OlistGCPLoader:
     def __init__(
         self,
         project_id: str,
-        data_dir: str = "./data/raw"
+        data_dir: str = "../../data/raw"
     ):
         self.project_id = project_id
-        self.data_dir = Path(data_dir).expanduser()
+        if data_dir is None:
+            # Construye la ruta absoluta basada en la ubicación del archivo
+            base_dir = Path(__file__).resolve().parents[2]
+            self.data_dir = base_dir / "data" / "raw"
+        else:
+            self.data_dir = Path(data_dir).expanduser().resolve()
         
         # Clientes GCP
         self.storage_client = storage.Client(project=project_id)
@@ -41,7 +46,7 @@ class OlistGCPLoader:
         self.raw_bucket_name = f"{project_id}-raw-data"
         self.bq_dataset_id = "olist_raw"
         
-        print(f"🔧 Configuración:")
+        print(f"Configuración:")
         print(f"  - Project ID: {project_id}")
         print(f"  - Raw Bucket: {self.raw_bucket_name}")
         print(f"  - BQ Dataset: {self.bq_dataset_id}")
@@ -57,25 +62,26 @@ class OlistGCPLoader:
             # Upload
             blob.upload_from_filename(str(local_file))
             
-            print(f"  ✅ {local_file.name} → gs://{self.raw_bucket_name}/{gcs_path}")
+            print(f"{local_file.name} → gs://{self.raw_bucket_name}/{gcs_path}")
             return f"gs://{self.raw_bucket_name}/{gcs_path}"
             
         except Exception as e:
-            print(f"  ❌ Error subiendo {local_file.name}: {e}")
+            print(f"Error subiendo {local_file.name}: {e}")
             return None
     
     def upload_all_csvs(self):
         """Sube todos los CSVs a GCS"""
         
         print("=" * 80)
-        print("📤 SUBIENDO CSVs A GOOGLE CLOUD STORAGE")
+        print("SUBIENDO CSVs A GOOGLE CLOUD STORAGE")
         print("=" * 80)
         print("")
         
         csv_files = list(self.data_dir.glob("*.csv"))
+        print(f"Archivos encontrados: {csv_files}")
         
         if not csv_files:
-            print(f"❌ No se encontraron archivos CSV en {self.data_dir}")
+            print(f"No se encontraron archivos CSV en {self.data_dir}")
             return
         
         print(f"Archivos encontrados: {len(csv_files)}")
@@ -93,7 +99,7 @@ class OlistGCPLoader:
                 uploaded_files[csv_file.stem] = gcs_uri
         
         print("")
-        print(f"✅ {len(uploaded_files)}/{len(csv_files)} archivos subidos")
+        print(f"{len(uploaded_files)}/{len(csv_files)} archivos subidos")
         print("")
         
         return uploaded_files
@@ -146,16 +152,16 @@ class OlistGCPLoader:
             # Obtener info de la tabla
             table = self.bq_client.get_table(table_ref)
             
-            print(f"  ✅ {table_id}: {table.num_rows:,} filas cargadas")
+            print(f"{table_id}: {table.num_rows:,} filas cargadas")
             
             # Reportar errores tolerados (si hubo)
             if load_job.errors:
-                print(f"  ⚠️  {len(load_job.errors)} filas con errores fueron ignoradas")
+                print(f"{len(load_job.errors)} filas con errores fueron ignoradas")
             
             return True
             
         except Exception as e:
-            print(f"  ❌ Error cargando {table_id}: {e}")
+            print(f"Error cargando {table_id}: {e}")
             return False
     
     def get_bigquery_schema(self, table_name: str) -> list:
@@ -249,7 +255,7 @@ class OlistGCPLoader:
         """Carga todos los archivos desde GCS a BigQuery"""
         
         print("=" * 80)
-        print("📥 CARGANDO DATOS A BIGQUERY")
+        print("CARGANDO DATOS A BIGQUERY")
         print("=" * 80)
         print("")
         
@@ -280,14 +286,14 @@ class OlistGCPLoader:
             time.sleep(1)
         
         print("")
-        print(f"✅ {loaded_count}/{len(gcs_files)} tablas cargadas")
+        print(f"{loaded_count}/{len(gcs_files)} tablas cargadas")
         print("")
     
     def verify_data(self):
         """Verifica que los datos estén en BigQuery"""
         
         print("=" * 80)
-        print("✅ VERIFICANDO DATOS EN BIGQUERY")
+        print("VERIFICANDO DATOS EN BIGQUERY")
         print("=" * 80)
         print("")
         
@@ -308,10 +314,10 @@ class OlistGCPLoader:
                 result = self.bq_client.query(query).result()
                 count = list(result)[0]['count']
                 
-                print(f"  ✅ {table_id:30} - {count:,} filas")
+                print(f"{table_id:30} - {count:,} filas")
                 
             except Exception as e:
-                print(f"  ❌ {table_id:30} - Error: {e}")
+                print(f"{table_id:30} - Error: {e}")
         
         print("")
     
@@ -319,12 +325,12 @@ class OlistGCPLoader:
         """Ejecuta queries de ejemplo"""
         
         print("=" * 80)
-        print("🔍 SAMPLE QUERIES")
+        print("SAMPLE QUERIES")
         print("=" * 80)
         print("")
         
         # Query 1: Top 10 ciudades con más clientes
-        print("1️⃣  Top 10 ciudades con más clientes:")
+        print("Top 10 ciudades con más clientes:")
         print("-" * 40)
         
         query1 = f"""
@@ -345,7 +351,7 @@ class OlistGCPLoader:
         print("")
         
         # Query 2: Revenue por mes
-        print("2️⃣  Revenue por mes (últimos 12 meses):")
+        print("Revenue por mes (últimos 12 meses):")
         print("-" * 40)
         
         query2 = f"""
@@ -371,7 +377,7 @@ class OlistGCPLoader:
         print("")
         
         # Query 3: Categorías más vendidas
-        print("3️⃣  Top 10 categorías de productos:")
+        print("Top 10 categorías de productos:")
         print("-" * 40)
         
         query3 = f"""
@@ -402,7 +408,7 @@ class OlistGCPLoader:
         
         print("\n")
         print("=" * 80)
-        print("🚀 OLIST → GCP FULL LOAD")
+        print("OLIST → GCP FULL LOAD")
         print("=" * 80)
         print(f"Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         print("")
@@ -411,7 +417,7 @@ class OlistGCPLoader:
         gcs_files = self.upload_all_csvs()
         
         if not gcs_files:
-            print("❌ No se subieron archivos. Abortando.")
+            print("No se subieron archivos. Abortando.")
             return
         
         # 2. Cargar a BigQuery
@@ -440,12 +446,12 @@ def main():
         project_id = result.stdout.strip()
         
         if not project_id:
-            print("❌ No se pudo obtener el project ID")
+            print("No se pudo obtener el project ID")
             print("Ejecuta: gcloud config set project YOUR_PROJECT_ID")
             sys.exit(1)
         
     except Exception as e:
-        print(f"❌ Error obteniendo project ID: {e}")
+        print(f"Error obteniendo project ID: {e}")
         sys.exit(1)
     
     # Crear loader

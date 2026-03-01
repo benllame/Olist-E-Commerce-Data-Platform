@@ -10,12 +10,13 @@ from airflow.sensors.external_task import ExternalTaskSensor
 from airflow.providers.google.cloud.operators.bigquery import BigQueryInsertJobOperator
 from datetime import datetime, timedelta
 import logging
+import os
 
 # ==========================================
 # CONFIGURACIÓN
 # ==========================================
 
-PROJECT_ID = 'ecommerce-olist-150226'
+PROJECT_ID = os.environ.get('GCP_PROJECT_ID', 'ecommerce-olist-ben-260301')
 
 default_args = {
     'owner': 'analytics',

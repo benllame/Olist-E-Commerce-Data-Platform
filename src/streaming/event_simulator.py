@@ -17,7 +17,8 @@ logging.basicConfig(level=logging.INFO)
 # CONFIGURACIÓN
 # ==========================================
 
-PROJECT_ID = 'ecommerce-olist-150226'  # ⚠️ Cambiar
+import os
+PROJECT_ID = os.environ.get('GCP_PROJECT_ID', 'ecommerce-olist-ben-260301')
 TOPIC_NAME = 'olist-order-events'
 
 # Datos de ejemplo

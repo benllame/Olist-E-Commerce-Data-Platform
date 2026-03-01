@@ -17,7 +17,7 @@ logging.getLogger().setLevel(logging.INFO)
 # CONFIGURACIÓN
 # ==========================================
 
-PROJECT_ID = 'ecommerce-olist-150226'
+PROJECT_ID = 'ecommerce-olist-ben-260301'
 TOPIC = f'projects/{PROJECT_ID}/topics/olist-order-events'
 SUBSCRIPTION = f'projects/{PROJECT_ID}/subscriptions/olist-order-events-sub'
 DATASET = 'olist_analytics'

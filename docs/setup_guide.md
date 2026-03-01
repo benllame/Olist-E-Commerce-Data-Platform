@@ -199,6 +199,15 @@ gcloud auth application-default login
 #   ~/.config/gcloud/application_default_credentials.json
 ```
 
+> [!IMPORTANT]
+> **Los pasos 5.2 a 5.4** (crear Service Account y generar key JSON) deben ejecutarse
+> **después del paso 8** (Terraform). Terraform necesita permisos de Owner para
+> crear buckets, datasets, service accounts e IAM bindings. La SA creada aquí
+> solo tiene permisos limitados (`storage.objectAdmin`, `bigquery.dataEditor`, etc.)
+> y **no puede crear infraestructura**.
+>
+> 👉 **Salta directamente al [paso 6](#6-instalar-terraform)** y vuelve aquí después de completar el paso 8.
+
 ### 5.2. Crear Service Account para el pipeline
 
 ```bash
@@ -421,12 +430,19 @@ variable "project_id" {
 #### 8.A.2. Autenticar Terraform con GCP
 
 ```bash
-# Opción 1: Usar Application Default Credentials (recomendado)
+# Usar Application Default Credentials (tus credenciales de usuario)
 gcloud auth application-default login
-
-# Opción 2: Usar Service Account key
-export GOOGLE_APPLICATION_CREDENTIALS="$HOME/olist-sa-key.json"
 ```
+
+> [!CAUTION]
+> Terraform debe correr con **tus credenciales de usuario** (Owner del proyecto), **NO** con
+> una Service Account key. Si la variable `GOOGLE_APPLICATION_CREDENTIALS` está seteada,
+> Terraform la usará automáticamente y fallará con errores de permisos.
+>
+> ```bash
+> # Si tienes GOOGLE_APPLICATION_CREDENTIALS seteada, quítala antes de correr Terraform:
+> unset GOOGLE_APPLICATION_CREDENTIALS
+> ```
 
 #### 8.A.3. Inicializar y crear recursos
 
@@ -710,6 +726,10 @@ Deberías ver los siguientes 6 DAGs:
 
 ## 11. Ejecutar Pipelines
 
+> [!NOTE]
+> Todos los scripts ahora leen `GCP_PROJECT_ID` desde la variable de entorno.
+> Asegúrate de tener `export GCP_PROJECT_ID="tu-project-id"` seteado (ver paso 3.2).
+
 ### 11.1. Batch Pipeline (Apache Beam)
 
 ```bash
@@ -738,6 +758,11 @@ python src/pipelines/olist_basic_pipeline.py \
 ### 11.2. Streaming Pipeline
 
 Requiere **2 terminales** simultáneas:
+
+> [!CAUTION]
+> El streaming pipeline **NO funciona** con el ambiente `airflow` (`apache-beam 2.53.0`)
+> debido a un bug de compatibilidad con `google-cloud-bigquery`. Usa el ambiente `dev`
+> (o cualquier ambiente con `apache-beam >= 2.60.0`).
 
 **Terminal 1 — Simulador de eventos** (genera datos fake en Pub/Sub):
 ```bash

@@ -9,6 +9,7 @@ from airflow.operators.python import PythonOperator, BranchPythonOperator
 from airflow.operators.bash import BashOperator
 from datetime import datetime, timedelta
 import logging
+import os
 
 default_args = {
     'owner': 'data-engineering',
@@ -34,7 +35,7 @@ def decide_processing_strategy(**context):
     """
     from google.cloud import bigquery
     
-    PROJECT_ID = 'ecommerce-olist-150226'
+    PROJECT_ID = os.environ.get('GCP_PROJECT_ID', 'ecommerce-olist-ben-260301')
     
     client = bigquery.Client(project=PROJECT_ID)
     

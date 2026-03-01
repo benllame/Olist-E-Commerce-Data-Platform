@@ -8,8 +8,9 @@ from airflow import DAG
 from airflow.operators.python import PythonOperator
 from airflow.providers.google.cloud.operators.dataflow import DataflowStartPythonOperator
 from datetime import datetime, timedelta
+import os
 
-PROJECT_ID = 'ecommerce-olist-150226'
+PROJECT_ID = os.environ.get('GCP_PROJECT_ID', 'ecommerce-olist-ben-260301')
 
 default_args = {
     'owner': 'data-engineering',
