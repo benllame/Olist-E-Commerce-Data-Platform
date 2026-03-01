@@ -188,7 +188,6 @@ Un **data pipeline automatizado** que:
 |------------|-----|---------|
 | **pytest** | Unit + integration testing | 12 tests en 4 clases (parsers, transforms, validaciones, BigQuery) |
 | **GitHub Actions** | CI/CD | 3 jobs: tests (Python 3.10/3.11), terraform validate, security scan |
-| **pre-commit** | Code quality | black, flake8, mypy, trailing whitespace, syntax check |
 | **Bandit** | Security scanning | Análisis estático de seguridad en cada push |
 
 ### ML & Analytics
@@ -486,7 +485,7 @@ Este proyecto utiliza **2 ambientes conda** separados:
 | Ambiente | Python | Paquetes | Propósito |
 |----------|--------|----------|-----------|
 | `airflow` | 3.10 | 324 | Apache Airflow 2.8.1, DAGs, operaciones BigQuery, GCS providers |
-| `dev` | 3.10 | 509 | Apache Beam, streaming, PyTorch 2.7.1, scikit-learn, pre-commit |
+| `dev` | 3.10 | 509 | Apache Beam, streaming, PyTorch 2.7.1, scikit-learn |
 
 ### 2. Setup GCP & Deploy Infrastructure
 
@@ -621,7 +620,6 @@ brazilian_ecommerce/
 │   └── workflows/
 │       └── ci.yml                       # CI: tests, terraform validate, security scan
 │
-├── .pre-commit-config.yaml              # Pre-commit: black, flake8, mypy, checks
 ├── .gitignore                           # Exclusiones de Git
 ├── pytest.ini                           # Configuración pytest
 └── ds.json                              # BigQuery dataset metadata (olist_analytics)
@@ -779,7 +777,7 @@ resource "google_bigquery_dataset" "staging" {
 #### Software Engineering
 - ✅ Testing (12 unit + integration tests con pytest)
 - ✅ CI/CD (GitHub Actions — 3 jobs, multi-Python-version matrix)
-- ✅ Code quality (pre-commit: black, flake8, mypy)
+- ✅ Code quality (black, flake8 via GitHub Actions CI)
 - ✅ Security scanning (Bandit)
 
 #### Data Science / ML
