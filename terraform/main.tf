@@ -6,7 +6,7 @@
 # ==========================================
 terraform {
   required_version = ">= 1.0"
-  
+
   required_providers {
     google = {
       source  = "hashicorp/google"
@@ -28,10 +28,10 @@ provider "google" {
 resource "google_storage_bucket" "raw_data" {
   name          = "${var.project_id}-raw-data"
   location      = var.bucket_location
-  force_destroy = true  # ⚠️ Permite borrar bucket con contenido (solo dev)
-  
+  force_destroy = true # ⚠️ Permite borrar bucket con contenido (solo dev)
+
   uniform_bucket_level_access = true
-  
+
   # Lifecycle: Mover a Nearline después de 30 días (-50% costo storage)
   lifecycle_rule {
     condition {
@@ -42,7 +42,7 @@ resource "google_storage_bucket" "raw_data" {
       storage_class = "NEARLINE"
     }
   }
-  
+
   # Lifecycle: Mover a Coldline después de 60 días (-75% costo storage)
   lifecycle_rule {
     condition {
@@ -53,7 +53,7 @@ resource "google_storage_bucket" "raw_data" {
       storage_class = "COLDLINE"
     }
   }
-  
+
   # Lifecycle: Borrar archivos después de 180 días
   lifecycle_rule {
     condition {
@@ -63,7 +63,7 @@ resource "google_storage_bucket" "raw_data" {
       type = "Delete"
     }
   }
-  
+
   labels = var.labels
 }
 
@@ -72,13 +72,13 @@ resource "google_storage_bucket" "processed_data" {
   name          = "${var.project_id}-processed-data"
   location      = var.bucket_location
   force_destroy = true
-  
+
   uniform_bucket_level_access = true
-  
+
   versioning {
-    enabled = true  # Mantener versiones de archivos
+    enabled = true # Mantener versiones de archivos
   }
-  
+
   # Lifecycle: Mover a Nearline después de 30 días (-50% costo storage)
   lifecycle_rule {
     condition {
@@ -89,7 +89,7 @@ resource "google_storage_bucket" "processed_data" {
       storage_class = "NEARLINE"
     }
   }
-  
+
   # Lifecycle: Mover a Coldline después de 90 días (-75% costo storage)
   lifecycle_rule {
     condition {
@@ -100,7 +100,7 @@ resource "google_storage_bucket" "processed_data" {
       storage_class = "COLDLINE"
     }
   }
-  
+
   # Lifecycle: Mover a Archive después de 180 días (-85% costo storage)
   lifecycle_rule {
     condition {
@@ -111,18 +111,18 @@ resource "google_storage_bucket" "processed_data" {
       storage_class = "ARCHIVE"
     }
   }
-  
+
   # Lifecycle: Borrar versiones antiguas no-current después de 30 días
   lifecycle_rule {
     condition {
       num_newer_versions = 3
-      with_state         = "ARCHIVED"  # Solo versiones no-current
+      with_state         = "ARCHIVED" # Solo versiones no-current
     }
     action {
       type = "Delete"
     }
   }
-  
+
   labels = var.labels
 }
 
@@ -131,9 +131,9 @@ resource "google_storage_bucket" "airflow_dags" {
   name          = "${var.project_id}-airflow-dags"
   location      = var.bucket_location
   force_destroy = true
-  
+
   uniform_bucket_level_access = true
-  
+
   # Lifecycle: Borrar DAGs/logs obsoletos después de 90 días
   lifecycle_rule {
     condition {
@@ -143,7 +143,7 @@ resource "google_storage_bucket" "airflow_dags" {
       type = "Delete"
     }
   }
-  
+
   labels = merge(var.labels, {
     purpose = "airflow-dags"
   })
@@ -154,9 +154,9 @@ resource "google_storage_bucket" "dataflow_temp" {
   name          = "${var.project_id}-dataflow-temp"
   location      = var.bucket_location
   force_destroy = true
-  
+
   uniform_bucket_level_access = true
-  
+
   # Auto-delete archivos temporales después de 7 días
   lifecycle_rule {
     condition {
@@ -166,7 +166,7 @@ resource "google_storage_bucket" "dataflow_temp" {
       type = "Delete"
     }
   }
-  
+
   labels = merge(var.labels, {
     purpose = "dataflow-temp"
   })
@@ -182,10 +182,10 @@ resource "google_bigquery_dataset" "raw" {
   friendly_name = "Olist Raw Data"
   description   = "Raw data from Olist Brazilian E-Commerce"
   location      = var.bigquery_location
-  
+
   # No expirar tablas en raw (son datos originales)
   # default_table_expiration_ms = null
-  
+
   labels = merge(var.labels, {
     data_type = "raw"
   })
@@ -197,10 +197,10 @@ resource "google_bigquery_dataset" "staging" {
   friendly_name = "Olist Staging Data"
   description   = "Staging area for data transformations"
   location      = var.bigquery_location
-  
+
   # Tablas staging expiran en 30 días
-  default_table_expiration_ms = 2592000000  # 30 días
-  
+  default_table_expiration_ms = 2592000000 # 30 días
+
   labels = merge(var.labels, {
     data_type = "staging"
   })
@@ -213,31 +213,31 @@ resource "google_bigquery_dataset" "analytics" {
   description   = "Final analytics tables for dashboards and ML"
   location      = var.bigquery_location
   # No expirar (son datos finales)
-  
+
   # NOTA: Cuando se definen bloques access {} explícitos en Terraform,
   # estos REEMPLAZAN todos los permisos heredados del proyecto.
   # Sin el bloque de projectOwners, ni siquiera el Owner del proyecto
   # puede crear tablas aquí, causando:
   #   "Permission bigquery.tables.create denied on dataset olist_analytics"
   # Ver: https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/bigquery_dataset#access
-  
+
   access {
     role          = "OWNER"
     user_by_email = google_service_account.dataflow_runner.email
   }
-  
+
   # Acceso para la SA usada en ejecución local (olist-sa-key.json)
   access {
     role          = "WRITER"
     user_by_email = "olist-pipeline-sa@${var.project_id}.iam.gserviceaccount.com"
   }
-  
+
   # OBLIGATORIO: sin esto, los owners del proyecto quedan bloqueados
   access {
     role          = "OWNER"
     special_group = "projectOwners"
   }
-  
+
   labels = merge(var.labels, {
     data_type = "analytics"
   })
@@ -251,20 +251,20 @@ resource "google_bigquery_dataset" "analytics" {
 resource "google_bigquery_table" "raw_customers" {
   dataset_id = google_bigquery_dataset.raw.dataset_id
   table_id   = "customers"
-  
-  deletion_protection = false  # Solo para dev
-  
+
+  deletion_protection = false # Solo para dev
+
   schema = jsonencode([
     {
-      name = "customer_id"
-      type = "STRING"
-      mode = "REQUIRED"
+      name        = "customer_id"
+      type        = "STRING"
+      mode        = "REQUIRED"
       description = "Unique customer ID"
     },
     {
-      name = "customer_unique_id"
-      type = "STRING"
-      mode = "NULLABLE"
+      name        = "customer_unique_id"
+      type        = "STRING"
+      mode        = "NULLABLE"
       description = "Unique ID across multiple orders"
     },
     {
@@ -283,13 +283,13 @@ resource "google_bigquery_table" "raw_customers" {
       mode = "NULLABLE"
     },
     {
-      name = "ingestion_timestamp"
-      type = "TIMESTAMP"
-      mode = "NULLABLE"
+      name        = "ingestion_timestamp"
+      type        = "TIMESTAMP"
+      mode        = "NULLABLE"
       description = "When this row was ingested"
     }
   ])
-  
+
   labels = var.labels
 }
 
@@ -297,15 +297,15 @@ resource "google_bigquery_table" "raw_customers" {
 resource "google_bigquery_table" "raw_orders" {
   dataset_id = google_bigquery_dataset.raw.dataset_id
   table_id   = "orders"
-  
+
   deletion_protection = false
-  
+
   # Particionar por fecha de compra (mejor performance)
   time_partitioning {
     type  = "DAY"
     field = "order_purchase_timestamp"
   }
-  
+
   schema = jsonencode([
     {
       name = "order_id"
@@ -353,7 +353,7 @@ resource "google_bigquery_table" "raw_orders" {
       mode = "NULLABLE"
     }
   ])
-  
+
   labels = var.labels
 }
 
@@ -361,9 +361,9 @@ resource "google_bigquery_table" "raw_orders" {
 resource "google_bigquery_table" "raw_order_items" {
   dataset_id = google_bigquery_dataset.raw.dataset_id
   table_id   = "order_items"
-  
+
   deletion_protection = false
-  
+
   schema = jsonencode([
     {
       name = "order_id"
@@ -406,7 +406,7 @@ resource "google_bigquery_table" "raw_order_items" {
       mode = "NULLABLE"
     }
   ])
-  
+
   labels = var.labels
 }
 
@@ -414,9 +414,9 @@ resource "google_bigquery_table" "raw_order_items" {
 resource "google_bigquery_table" "raw_products" {
   dataset_id = google_bigquery_dataset.raw.dataset_id
   table_id   = "products"
-  
+
   deletion_protection = false
-  
+
   schema = jsonencode([
     {
       name = "product_id"
@@ -469,7 +469,7 @@ resource "google_bigquery_table" "raw_products" {
       mode = "NULLABLE"
     }
   ])
-  
+
   labels = var.labels
 }
 
@@ -477,9 +477,9 @@ resource "google_bigquery_table" "raw_products" {
 resource "google_bigquery_table" "raw_sellers" {
   dataset_id = google_bigquery_dataset.raw.dataset_id
   table_id   = "sellers"
-  
+
   deletion_protection = false
-  
+
   schema = jsonencode([
     {
       name = "seller_id"
@@ -507,7 +507,7 @@ resource "google_bigquery_table" "raw_sellers" {
       mode = "NULLABLE"
     }
   ])
-  
+
   labels = var.labels
 }
 
@@ -515,9 +515,9 @@ resource "google_bigquery_table" "raw_sellers" {
 resource "google_bigquery_table" "raw_order_payments" {
   dataset_id = google_bigquery_dataset.raw.dataset_id
   table_id   = "order_payments"
-  
+
   deletion_protection = false
-  
+
   schema = jsonencode([
     {
       name = "order_id"
@@ -550,7 +550,7 @@ resource "google_bigquery_table" "raw_order_payments" {
       mode = "NULLABLE"
     }
   ])
-  
+
   labels = var.labels
 }
 
@@ -558,9 +558,9 @@ resource "google_bigquery_table" "raw_order_payments" {
 resource "google_bigquery_table" "raw_order_reviews" {
   dataset_id = google_bigquery_dataset.raw.dataset_id
   table_id   = "order_reviews"
-  
+
   deletion_protection = false
-  
+
   schema = jsonencode([
     {
       name = "review_id"
@@ -603,7 +603,7 @@ resource "google_bigquery_table" "raw_order_reviews" {
       mode = "NULLABLE"
     }
   ])
-  
+
   labels = var.labels
 }
 
@@ -611,9 +611,9 @@ resource "google_bigquery_table" "raw_order_reviews" {
 resource "google_bigquery_table" "raw_geolocation" {
   dataset_id = google_bigquery_dataset.raw.dataset_id
   table_id   = "geolocation"
-  
+
   deletion_protection = false
-  
+
   schema = jsonencode([
     {
       name = "geolocation_zip_code_prefix"
@@ -646,7 +646,7 @@ resource "google_bigquery_table" "raw_geolocation" {
       mode = "NULLABLE"
     }
   ])
-  
+
   labels = var.labels
 }
 
@@ -654,9 +654,9 @@ resource "google_bigquery_table" "raw_geolocation" {
 resource "google_bigquery_table" "raw_product_categories" {
   dataset_id = google_bigquery_dataset.raw.dataset_id
   table_id   = "product_category_translation"
-  
+
   deletion_protection = false
-  
+
   schema = jsonencode([
     {
       name = "product_category_name"
@@ -674,7 +674,7 @@ resource "google_bigquery_table" "raw_product_categories" {
       mode = "NULLABLE"
     }
   ])
-  
+
   labels = var.labels
 }
 
@@ -685,28 +685,28 @@ resource "google_bigquery_table" "raw_product_categories" {
 # Topic para eventos de órdenes
 resource "google_pubsub_topic" "order_events" {
   name = "olist-order-events"
-  
+
   labels = merge(var.labels, {
     purpose = "streaming-events"
   })
-  
-  message_retention_duration = "86400s"  # 24 horas
+
+  message_retention_duration = "86400s" # 24 horas
 }
 
 # Subscription al topic
 resource "google_pubsub_subscription" "order_events_sub" {
   name  = "olist-order-events-subscription"
   topic = google_pubsub_topic.order_events.name
-  
+
   ack_deadline_seconds = 20
-  
-  message_retention_duration = "86400s"  # 24 horas
-  
+
+  message_retention_duration = "86400s" # 24 horas
+
   retry_policy {
     minimum_backoff = "10s"
     maximum_backoff = "600s"
   }
-  
+
   labels = var.labels
 }
 
@@ -768,7 +768,7 @@ resource "google_project_iam_member" "airflow_storage_admin" {
 
 resource "google_project_iam_member" "airflow_bigquery_editor" {
   project = var.project_id
-  role    = "roles/bigquery.dataEditor"  # Solo leer/escribir, NO crear/borrar datasets
+  role    = "roles/bigquery.dataEditor" # Solo leer/escribir, NO crear/borrar datasets
   member  = "serviceAccount:${google_service_account.airflow_runner.email}"
 }
 
