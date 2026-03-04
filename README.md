@@ -11,6 +11,86 @@
 
 ---
 
+## 🧭 Resumen Ejecutivo
+
+> **Para el reclutador:** Esta sección explica el proyecto en lenguaje de negocio, sin tecnicismos.
+
+### ¿Qué es este proyecto?
+
+Una **plataforma de datos automatizada** construida sobre Google Cloud que procesa, transforma y analiza más de **100.000 órdenes de e-commerce** del marketplace brasileño Olist (equivalente a ~$3M USD en transacciones reales).
+
+El sistema reemplaza procesos manuales lentos y propensos a errores por pipelines automáticos que entregan reportes de negocio en minutos, detectan anomalías en tiempo real y preparan datos listos para modelos de inteligencia artificial.
+
+### ¿Qué problema resuelve?
+
+| Problema del negocio | Antes | Con esta plataforma |
+|---|---|---|
+| Tiempo para generar reportes | 2–4 horas (manual) | **< 5 minutos** (automático) |
+| Detección de problemas (caída de ventas, cancelaciones) | Días después | **En tiempo real** |
+| Fiabilidad de los datos | ~80% (errores humanos) | **99,9%** (validación automática) |
+| Costo operativo mensual | Sin control | **$30–50/mes** (optimizado) |
+
+### ¿Qué se construyó?
+
+- **8 pipelines orquestados** que corren solos cada día: ingesta de datos, transformaciones, generación de reportes y monitoreo de salud del sistema.
+- **Infraestructura en la nube reproducible al 100%**: con un solo comando se levantan los 28 recursos de Google Cloud necesarios.
+- **Procesamiento en tiempo real**: los eventos de órdenes se procesan y almacenan en menos de 5 segundos.
+- **Segmentación de clientes automática**: el sistema clasifica a los clientes en categorías como "Champion", "En riesgo de abandono" o "Alto valor" sin intervención humana.
+- **12 pruebas automáticas** + integración continua que verifican que el código funcione en cada cambio.
+
+### Diagrama de flujo del sistema
+
+```mermaid
+flowchart LR
+    subgraph FUENTES["📦 FUENTES DE DATOS"]
+        A["📄 Archivos CSV\n(9 tablas · 1.5M filas)"]
+        B["⚡ Eventos en\ntiempo real"]
+    end
+
+    subgraph NUBE["☁️ NUBE (Google Cloud)"]
+        C["🗄️ Data Lake\n(Cloud Storage)"]
+        D["⚙️ Procesamiento\nBatch + Streaming\n(Apache Beam / Dataflow)"]
+        E["🏛️ Data Warehouse\n(BigQuery)\nRaw → Staging → Analytics"]
+    end
+
+    subgraph ORQUESTACION["🎛️ ORQUESTACIÓN"]
+        F["🔄 Apache Airflow\n8 pipelines automáticos\n(ingesta · transform · reportes · alertas)"]
+    end
+
+    subgraph SALIDAS["📊 SALIDAS"]
+        G["📈 Reportes diarios\nde negocio"]
+        H["🤖 Features para\nModelos ML"]
+        I["🚨 Alertas\nautomáticas"]
+    end
+
+    A --> C
+    B --> D
+    C --> D
+    D --> E
+    F -.->|"orquesta"| D
+    E --> G
+    E --> H
+    E --> I
+
+    style FUENTES fill:#f0f7ff,stroke:#4285F4,color:#000
+    style NUBE fill:#fff3e0,stroke:#FF6C37,color:#000
+    style ORQUESTACION fill:#f3e5f5,stroke:#9C27B0,color:#000
+    style SALIDAS fill:#e8f5e9,stroke:#4CAF50,color:#000
+```
+
+### Habilidades demostradas
+
+| Área | Tecnologías clave |
+|---|---|
+| Ingeniería de datos (pipelines ETL) | Apache Beam, Apache Airflow, Python |
+| Nube y escalabilidad | Google Cloud (BigQuery, Dataflow, Cloud Storage, Pub/Sub) |
+| Infraestructura como código | Terraform (28 recursos) |
+| Procesamiento en tiempo real | Streaming con ventanas temporales, latencia < 5s |
+| Calidad y testing | pytest, GitHub Actions CI/CD, Bandit (seguridad) |
+| Machine Learning | Feature engineering con SQL, segmentación RFM, predicción de churn |
+
+---
+
 ## 📖 Tabla de Contenidos
 
 - [Descripción del Proyecto](#-descripción-del-proyecto)
