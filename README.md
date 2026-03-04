@@ -25,6 +25,7 @@
 - [Decisiones de Diseño](#-decisiones-de-diseño)
 - [Optimización de Costos](#-optimización-de-costos)
 - [Resultados y Logros](#-resultados-y-logros)
+- [Destrucción de Infraestructura](#-destrucción-de-infraestructura-teardown)
 - [Roadmap](#-roadmap)
 - [Contacto](#-contacto)
 
@@ -790,7 +791,70 @@ resource "google_bigquery_dataset" "staging" {
 
 
 
-## 📄 License
+## � Destrucción de Infraestructura (Teardown)
+
+Cuando el proyecto ya no está en uso es fundamental **eliminar todos los recursos en la nube** para evitar cargos inesperados.
+
+### Opción 1 — Eliminar el proyecto GCP completo (recomendado)
+
+Esta es la forma más rápida y segura. Borra absolutamente todos los recursos asociados al proyecto y detiene la facturación de inmediato.
+
+```bash
+gcloud projects delete ecommerce-olist-ben-260301 --quiet
+```
+
+Recursos eliminados:
+- ✅ Todos los **buckets de GCS** (raw-data, processed-data, dataflow-temp, airflow-dags)
+- ✅ Todos los **datasets de BigQuery** (olist_raw, olist_staging, olist_analytics)
+- ✅ Todos los **service accounts** (olist-pipeline-sa, olist-dataflow-runner, olist-airflow-runner)
+- ✅ Todos los **Pub/Sub** topics y subscriptions
+- ✅ Todas las **IAM policies** del proyecto
+
+> ⚠️ GCP mantiene el proyecto en estado "pendiente de eliminación" durante **30 días**. Durante ese período se puede recuperar con:
+> ```bash
+> gcloud projects undelete ecommerce-olist-ben-260301
+> ```
+> Pasados los 30 días, la eliminación es **permanente e irreversible**.
+
+---
+
+### Opción 2 — Destruir sólo los recursos via Terraform
+
+Útil si quieres conservar el proyecto GCP pero eliminar la infraestructura desplegada.
+
+```bash
+export GOOGLE_APPLICATION_CREDENTIALS=/path/to/your-sa-key.json
+cd terraform/
+terraform destroy -auto-approve
+```
+
+Plan esperado:
+```
+Plan: 0 to add, 0 to change, 28 to destroy.
+```
+
+> **Nota**: El service account `olist-pipeline-sa` necesita los roles `roles/resourcemanager.projectIamAdmin`, `roles/iam.serviceAccountAdmin` y `roles/storage.admin` para poder eliminar IAM bindings y buckets. Si recibes errores 403, utiliza la **Opción 1** o un usuario con rol `Owner`.
+
+---
+
+### Verificación post-teardown
+
+Confirma que no queden recursos activos:
+
+```bash
+# Listar buckets
+gcloud storage buckets list --project=ecommerce-olist-ben-260301
+
+# Listar datasets de BigQuery
+bq ls --project_id=ecommerce-olist-ben-260301
+
+# Listar topics de Pub/Sub
+gcloud pubsub topics list --project=ecommerce-olist-ben-260301
+```
+
+---
+
+## �📄 License
 
 Este proyecto está bajo la licencia **MIT License** - ver el archivo [LICENSE](LICENSE) para detalles.
 
